@@ -64,6 +64,15 @@ func WithPath(path string) support.ClusterOpts {
 	}
 }
 
+func WithWaitDuration(waitDuration time.Duration) support.ClusterOpts {
+	return func(c support.E2EClusterProvider) {
+		k, ok := c.(*Cluster)
+		if ok {
+			k.waitDuration = waitDuration
+		}
+	}
+}
+
 func (k *Cluster) findOrInstallKwokCtl() error {
 	if k.version != "" {
 		kwokVersion = k.version
@@ -203,7 +212,9 @@ func (k *Cluster) ExportLogs(ctx context.Context, dest string) error {
 	}
 
 	// TODO: Get Rid of this if we decide to enforce a min version of the kwokctl at some point
-	for _, component := range []string{"audit", "etcd", "kube-apiserver", "kube-controller-manager", "kube-scheduler", "kwok-controller", "prometheus"} {
+	for _, component := range []string{
+		"audit", "etcd", "kube-apiserver", "kube-controller-manager", "kube-scheduler", "kwok-controller", "prometheus",
+	} {
 		command := fmt.Sprintf("%s logs %s", k.path, component)
 		p := utils.RunCommand(command)
 		if p.Err() != nil {
